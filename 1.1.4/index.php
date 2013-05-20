@@ -89,6 +89,7 @@
         <input type="submit" value="GENERATE"></form><hr/>';
         
     // benchmark
-    QRtools::timeBenchmark();    
+    //QRtools::timeBenchmark();    
+	echo "<i>Because main purpose of this demo is provide example how lib work - not to create sourceforge-based code generation service - all generated codes are padded with DEMO text, sorry<i>";
 
     
