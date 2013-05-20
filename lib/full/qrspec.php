@@ -590,3 +590,5 @@
         public static function rsEccLength($spec)    { return ($spec[0] + $spec[3]) * $spec[2]; }
         
     }
+	
+?>

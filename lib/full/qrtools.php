@@ -24,6 +24,8 @@
 
     class QRtools {
     
+		public static $timeBenchmarkStarted = false;
+	
         //----------------------------------------------------------------------
         public static function binarize($frame)
         {
@@ -122,6 +124,13 @@
             }
         }
         
+		//----------------------------------------------------------------------
+        public static function startTimeBenchmark()
+        {
+			$GLOBALS['qr_time_bench'] = array();
+            self::markTime('start');
+        }
+		
         //----------------------------------------------------------------------
         public static function markTime($markerId)
         {
@@ -132,6 +141,11 @@
                 $GLOBALS['qr_time_bench'] = array();
             
             $GLOBALS['qr_time_bench'][$markerId] = $time;
+			
+			if ((!self::$timeBenchmarkStarted)&&($markerId != 'start')) {
+				self::$timeBenchmarkStarted = true;
+				$GLOBALS['qr_time_bench']['start'] = $time;
+			}
         }
         
         //----------------------------------------------------------------------
@@ -167,6 +181,4 @@
     }
     
     //##########################################################################
-    
-    QRtools::markTime('start');
     

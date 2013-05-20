@@ -40,4 +40,10 @@
 	include $QR_BASEDIR."qrrscode.php";
 	include $QR_BASEDIR."qrmask.php";
 	include $QR_BASEDIR."qrencode.php";
+	
+	include $QR_BASEDIR."qrarea.php";
+	include $QR_BASEDIR."qrcanvas.php";
+	include $QR_BASEDIR."qrsvg.php";
+	//
+	
 

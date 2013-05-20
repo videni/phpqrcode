@@ -25,6 +25,8 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
  
+ 
+ 
     class QRrsblock {
         public $dataLength;
         public $data = array();
@@ -152,14 +154,59 @@
     }
 
     //##########################################################################
-    
+
+    /**
+     * Class to create QR-code
+     * QR Code symbol is a 2D barcode that can be scanned by handy terminals such as a mobile phone with CCD.
+     * The capacity of QR Code is up to 7000 digits or 4000 characters, and has high robustness.
+     * This class supports QR Code model 2, described in JIS (Japanese Industrial Standards) X0510:2004 or ISO/IEC 18004.
+     *
+     * Currently the following features are not supported: ECI and FNC1 mode, Micro QR Code, QR Code model 1, Structured mode.
+     *
+     * @package com.deltalab.phpqrcode
+     * @abstract Class for generating QR-code images, canvas 
+     * @author Dominik Dzienia
+     * @copyright 2010 Dominik Dzienia and others
+     * @link http://phpqrcode.sourceforge.net
+     * @license http://www.gnu.org/copyleft/lesser.html LGPL
+     * @version 1.0.003
+     */
+
     class QRcode {
     
+        /**
+		 * @var QR code version. Size of QRcode is defined as version. Version is from 1 to 40. Version 1 is 21*21 matrix. And 4 modules increases whenever 1 version increases. So version 40 is 177*177 matrix.
+		 * @access public
+		 */
         public $version;
+        
+        /**
+		 * @var width of code table, because code is square shaped - same as height
+		 * @access protected
+		 */
         public $width;
+                
         public $data; 
+		
+        /**
+		 * @var does canvas js support library was included, we remember it static 
+         * because file should be included only once
+		 * @access public
+		 */
+		public static $jscanvasincluded = false;
         
         //----------------------------------------------------------------------
+        /**
+		 * Encode mask
+         * Main function responsible for creating code. 
+         * We get empty frame, then fill it with data from input, then select best mask and apply it.
+         * If $mask argument is greater than -1 we assume that user want's that specific mask number (ranging form 0-7) to be used.
+         * Otherwise (when $mask is -1) mask is detected using algorithm depending of global configuration,
+         *
+         * @param QRinput $input data object
+		 * @param int $mask sugested masking mode
+		 */
+         
         public function encodeMask(QRinput $input, $mask)
         {
             if($input->getVersion() < 0 || $input->getVersion() > QRSPEC_VERSION_MAX) {
@@ -235,6 +282,13 @@
         }
     
         //----------------------------------------------------------------------
+        /**
+		 * Encode input with mask detection
+         * Shorthand for encodeMask, without specifing particular, static mask number.
+         *
+         * @param QRinput $input data object to be encoded
+		 */
+         
         public function encodeInput(QRinput $input)
         {
             return $this->encodeMask($input, -1);
@@ -298,6 +352,98 @@
         {
             $enc = QRencode::factory($level, $size, $margin);
             return $enc->encodeRAW($text, $outfile);
+        }
+		
+		//----------------------------------------------------------------------
+        public static function canvas($text, $elemId = false, $level = QR_ECLEVEL_L, $width = false, $size = false, $margin = false, $autoInclude = false) 
+        {
+			$html = '';
+			$extra = '';
+			
+			if ($autoInclude) {
+				if (!self::$jscanvasincluded) {
+					self::$jscanvasincluded = true;
+					echo '<script type="text/javascript" src="qrcanvas.js"></script>';
+				}
+			}
+			
+            $enc = QRencode::factory($level, 1, 0);
+            $tab_src = $enc->encode($text, false);
+			$area = new QRcanvasOutput($tab_src);
+			$area->detectGroups();
+			$area->detectAreas();
+			
+			if ($elemId === false) {
+				$elemId = 'qrcode-'.md5(mt_rand(1000,1000000).'.'.mt_rand(1000,1000000).'.'.mt_rand(1000,1000000).'.'.mt_rand(1000,1000000));
+				
+				if ($width == false) {
+					if (($size !== false) && ($size > 0))  {
+						$width = ($area->getWidth()+(2*$margin)) * $size;
+					} else {
+						$width = ($area->getWidth()+(2*$margin)) * 4;
+					}
+				}
+				
+				$html .= '<canvas id="'.$elemId.'" width="'.$width.'" height="'.$width.'">Your browser does not support CANVAS tag! Please upgrade to modern version of FireFox, Opera, Chrome or Safari/Webkit based browser</canvas>';
+			}
+			
+			if ($width !== false) {
+				$extra .= ', '.$width.', '.$width;
+			} 
+				
+			if ($margin !== false) {
+				$extra .= ', '.$margin.', '.$margin;				
+			}
+			
+			$html .= '<script>if(eval("typeof "+\'QRdrawCode\'+"==\'function\'")){QRdrawCode(QRdecompactOps(\''.$area->getCanvasOps().'\')'."\n".', \''.$elemId.'\', '.$area->getWidth().' '.$extra.');}else{alert(\'Please include qrcanvas.js!\');}</script>';
+			
+			return $html;
+        }
+		
+		//----------------------------------------------------------------------
+        public static function svg($text, $elemId = false, $outFile = false, $level = QR_ECLEVEL_L, $width = false, $size = false, $margin = false, $compress = false) 
+        {
+            $enc = QRencode::factory($level, 1, 0);
+            $tab_src = $enc->encode($text, false);
+			$area = new QRsvgOutput($tab_src);
+			$area->detectGroups();
+			$area->detectAreas();
+			
+			if ($elemId === false) {
+				$elemId = 'qrcode-'.md5(mt_rand(1000,1000000).'.'.mt_rand(1000,1000000).'.'.mt_rand(1000,1000000).'.'.mt_rand(1000,1000000));
+				
+				if ($width == false) {
+					if (($size !== false) && ($size > 0))  {
+						$width = ($area->getWidth()+(2*$margin)) * $size;
+					} else {
+						$width = ($area->getWidth()+(2*$margin)) * 4;
+					}
+				}
+			}
+			
+			$svg = '<svg xmlns="http://www.w3.org/2000/svg"
+			xmlns:xlink="http://www.w3.org/1999/xlink"
+			version="1.1"
+			baseProfile="full"
+			viewBox="'.(-$margin).' '.(-$margin).' '.($area->getWidth()+($margin*2)).' '.($area->getWidth()+($margin*2)).'" 
+			width="'.$width.'"
+			height="'.$width.'"
+			id="'.$elemId.'">'."\n";
+   
+			$svg .= $area->getRawSvg().'</svg>';
+   
+			if ($outFile !== false) {
+				$xmlPreamble = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'."\n";
+				$svgContent = $xmlPreamble.$svg;
+				
+				if ($compress === true) {
+					file_put_contents($outFile, gzencode($svgContent));
+				} else {
+					file_put_contents($outFile, $svgContent);
+				}
+			}
+			
+			return $svg;
         }
     }
     
