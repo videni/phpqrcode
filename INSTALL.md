@@ -46,7 +46,8 @@ Notice: probably you should'nt use all of this in same script :)
 
 	//code generated in text mode - as a binary table
 	//then displayed out as HTML using Unicode block building chars :)
-	$tab = $qr->encode('PHP QR Code :)');
+	$qrenc = new QRencode();
+	$tab = $qrenc->encode('PHP QR Code :)');
 	QRspec::debug($tab, true);
 
 ## TCPDF INTEGRATION ##
