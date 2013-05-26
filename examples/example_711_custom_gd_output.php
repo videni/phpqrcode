@@ -1,6 +1,7 @@
 <?php
 
     include('../lib/full/qrlib.php');
+    include('config.php');
 
     // custom code rendering with GD2
     
@@ -9,7 +10,7 @@
     // - blue is bad choise for FG color (should make hi contrast with BG color)
 
     $codeContents = '12345';
-    $tempDir = dirname(__FILE__).'/temp/';
+    $tempDir = EXAMPLE_TMP_SERVERPATH;
     $fileName = '711_test_custom.jpg';
     $outerFrame = 4;
     $pixelPerPoint = 5;
@@ -48,4 +49,4 @@
     ImageDestroy($target_image);
 
     // displaying
-    echo '<img src="temp/'.$fileName.'" />';
+    echo '<img src="'.EXAMPLE_TMP_URLRELPATH.$fileName.'" />';

@@ -1,19 +1,20 @@
 <?php
 
     include('../lib/full/qrlib.php');
+    include('config.php');
 
     // how to save PNG codes to server
     
-    $tempDir = dirname(__FILE__).'/temp/';
+    $tempDir = EXAMPLE_TMP_SERVERPATH;
     
     $codeContents = 'This Goes From File';
     
     // we need to generate filename somehow, 
     // with md5 or with database ID used to obtains $codeContents...
-    $fileName = 'file-'.md5($codeContents).'.png';
+    $fileName = '005_file_'.md5($codeContents).'.png';
     
     $pngAbsoluteFilePath = $tempDir.$fileName;
-    $urlRelativeFilePath = 'temp/'.$fileName;
+    $urlRelativeFilePath = EXAMPLE_TMP_URLRELPATH.$fileName;
     
     // generating
     if (!file_exists($pngAbsoluteFilePath)) {

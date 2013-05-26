@@ -1,10 +1,11 @@
 <?php
 
     include('../lib/full/qrlib.php');
+    include('config.php');
     
     // Compressed SVGZ support
     
-    $tempDir = dirname(__FILE__).'/temp/';
+    $tempDir = EXAMPLE_TMP_SERVERPATH;
      
     $dataText   = 'PHP QR Code :)';
     $svgTagId   = 'id-of-svg';

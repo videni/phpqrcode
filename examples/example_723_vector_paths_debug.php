@@ -1,6 +1,7 @@
 <?php
 
     include('../lib/full/qrlib.php');
+	include('config.php');
 
     // debuging vector subshapes
     // visible object categories:
@@ -11,7 +12,7 @@
     $eccLevel       = QR_ECLEVEL_H;
     $pixelPerPoint  = 12;
     $marginSize     = 2;
-    $tempDir        = dirname(__FILE__).'/temp/';
+    $tempDir        = EXAMPLE_TMP_SERVERPATH;
     $fileName       = '723_path_debug.png';
     
     // because PHP does not have macros or closures
@@ -195,4 +196,4 @@
     
     // displaying
     
-    echo '<img src="temp/'.$fileName.'" />';
+    echo '<img src="'.EXAMPLE_TMP_URLRELPATH.$fileName.'" />';

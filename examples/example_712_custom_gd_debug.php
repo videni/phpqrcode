@@ -1,11 +1,12 @@
 <?php
 
     include('../lib/full/qrlib.php');
+	include('config.php');
 
     // custom colorfull debug renderer
 
     $codeContents = 'Let see what the code structure looks like with a little bit bigger code';
-    $tempDir = dirname(__FILE__).'/temp/';
+    $tempDir = EXAMPLE_TMP_SERVERPATH;
     $fileName = '712_test_custom.png';
     $outerFrame = 4;
     $pixelPerPoint = 6;
@@ -95,4 +96,4 @@
     ImageDestroy($target_image);
 
     // displaying
-    echo '<img src="temp/'.$fileName.'" />';
+    echo '<img src="'.EXAMPLE_TMP_URLRELPATH.$fileName.'" />';

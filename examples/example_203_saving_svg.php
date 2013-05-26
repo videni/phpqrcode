@@ -1,10 +1,11 @@
 <?php
 
     include('../lib/full/qrlib.php');
+    include('config.php');
     
     // Saving SVG to file, demo with sourcecode preview
     
-    $tempDir = dirname(__FILE__).'/temp/';
+    $tempDir = EXAMPLE_TMP_SERVERPATH;
      
     $dataText   = 'PHP QR Code :)';
     $svgTagId   = 'id-of-svg';
