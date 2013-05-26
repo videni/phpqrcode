@@ -11,7 +11,7 @@
  * Copyright (C) 2006, 2007, 2008, 2009 Kentaro Fukuchi <fukuchi@megaui.net>
  *
  * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+ * Copyright (C) 2010-2013 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,22 +28,40 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
  
+	/** @addtogroup CoreGroup */
+	/** @{ */
+	
+	/** Reed-Solomon encoder item */
     class QRrsItem {
     
-        public $mm;                  // Bits per symbol 
-        public $nn;                  // Symbols per block (= (1<<mm)-1) 
-        public $alpha_to = array();  // log lookup table 
-        public $index_of = array();  // Antilog lookup table 
-        public $genpoly = array();   // Generator polynomial 
-        public $nroots;              // Number of generator roots = number of parity symbols 
-        public $fcr;                 // First consecutive root, index form 
-        public $prim;                // Primitive element, index form 
-        public $iprim;               // prim-th root of 1, index form 
-        public $pad;                 // Padding bytes in shortened block 
-        public $gfpoly;
+        /** Bits per symbol */
+        public $mm;           
+		/** Symbols per block (= (1<<mm)-1) */
+        public $nn;      
+		/** Log lookup table */
+        public $alpha_to = array();
+		/** Antilog lookup table */
+        public $index_of = array();
+		/** Generator polynomial */
+        public $genpoly = array();
+		/** Number of generator roots = number of parity symbols */
+        public $nroots;              
+        /** First consecutive root, index form */
+		public $fcr;                 
+        /** Primitive element, index form */
+		public $prim;                
+        /** Prim-th root of 1, index form */
+		public $iprim;               
+        /** Padding bytes in shortened block */
+		public $pad;                 
+        /** Galois Field Polynomial */
+		public $gfpoly;              
     
         //----------------------------------------------------------------------
-        public function modnn($x)
+        /** Modulo function in defined Field
+		@param Integer $x number to be modulo-mapped
+		*/ 
+		public function modnn($x)
         {
             while ($x >= $this->nn) {
                 $x -= $this->nn;
@@ -54,7 +72,15 @@
         }
         
         //----------------------------------------------------------------------
-        public static function init_rs_char($symsize, $gfpoly, $fcr, $prim, $nroots, $pad)
+		/** Encoder initialisation
+			@param Integer $symsize symbol size, bit count (1..8)
+			@param Integer $gfpoly Galois Field Polynomial
+			@param Integer $fcr First consecutive root
+			@param Integer $prim Primitive element
+			@param Integer $nroots Number of generator roots = number of parity symbols
+			@param Integer $pad Padding bytes in shortened block
+		*/
+		public static function init_rs_char($symsize, $gfpoly, $fcr, $prim, $nroots, $pad)
         {
             // Common code for intializing a Reed-Solomon control block (char or int symbols)
             // Copyright 2004 Phil Karn, KA9Q
@@ -140,6 +166,10 @@
         }
         
         //----------------------------------------------------------------------
+		/** Appends char into encoder
+			@param String input
+			@param Array parity table
+		*/
         public function encode_rs_char($data, &$parity)
         {
             $MM       =& $this->mm;
@@ -183,12 +213,21 @@
     }
     
     //##########################################################################
-    
+    /** Reed-Solomon encoder */
     class QRrs {
     
+		/** Encoder items array */
         public static $items = array();
         
         //----------------------------------------------------------------------
+		/** Encoder initialisation
+			@param Integer $symsize symbol size, bit count (1..8)
+			@param Integer $gfpoly Galois Field Polynomial
+			@param Integer $fcr First consecutive root
+			@param Integer $prim Primitive element
+			@param Integer $nroots Number of generator roots = number of parity symbols
+			@param Integer $pad Padding bytes in shortened block
+		*/
         public static function init_rs($symsize, $gfpoly, $fcr, $prim, $nroots, $pad)
         {
             foreach(self::$items as $rs) {
@@ -208,3 +247,5 @@
             return $rs;
         }
     }
+	
+	/** @}*/

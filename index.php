@@ -5,7 +5,7 @@
  * Exemplatory usage
  *
  * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+ * Copyright (C) 2010-2013 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,18 +22,25 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
  
-	header('Content-type: application/xhtml+xml');
- 
-	echo '<html xmlns="http://www.w3.org/1999/xhtml">
-	<head>
-		<title>PHP QR Code Demo</title>
-		<script type="text/javascript" src="lib/js/qrcanvas.js" />
-	</head>
-	<body>
-	<h1>PHP QR Code</h1>
-	<hr/>';
-	
-	// setup and input processing ----------------------------------------------
+    echo '<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>PHP QR Code Demo</title>
+        <script type="text/javascript" src="lib/js/qrcanvas.js"></script>
+    </head>
+    <body>
+    <h1>PHP QR Code</h1>
+    <hr/>';
+    
+    echo '<a href="examples/index.php">Examples and Demos</a> (<a href="">online</a>) 
+    | <a href="docs/html/index.html">API Documentation</a> (<a href="">online</a>)  
+    | <a href="http://sourceforge.net/projects/phpqrcode/">Online SF project</a> 
+    | <a href="http://phpqrcode.sourceforge.net/">Online SF Main Site</a> 
+    | <a href="http://sourceforge.net/apps/mediawiki/phpqrcode/">Online SF wiki</a>
+    | <a href="http://sourceforge.net/donate/index.php?group_id=311533">Donate!</a><hr />';
+    
+    // setup and input processing ----------------------------------------------
     
     //set it to writable location, a place for temp generated PNG files
     $FILE_TEMP_DIR = dirname(__FILE__).DIRECTORY_SEPARATOR.'temp'.DIRECTORY_SEPARATOR;
@@ -47,10 +54,10 @@
     if (!file_exists($FILE_TEMP_DIR))
         mkdir($FILE_TEMP_DIR);
     
-    
+
     //processing form input
     //remember to sanitize user input in real-life solution !!!
-	
+    
     $errorCorrectionLevel = 'L';
     if (isset($_REQUEST['level']) && in_array($_REQUEST['level'], array('L','M','Q','H')))
         $errorCorrectionLevel = $_REQUEST['level'];    
@@ -59,14 +66,14 @@
     if (isset($_REQUEST['size']))
         $matrixPointSize = min(max((int)$_REQUEST['size'], 1), 10);
 
-	$textData = 'PHP QR Code :)';
-	
-	if (isset($_REQUEST['data']) && (trim($_REQUEST['data']) != '')) { 
-		$textData = $_REQUEST['data'];
-	}
+    $textData = 'PHP QR Code :)';
+    
+    if (isset($_REQUEST['data']) && (trim($_REQUEST['data']) != '')) { 
+        $textData = $_REQUEST['data'];
+    }
         
     //config form --------------------------------------------------------------
-	
+    
     echo '<form action="index.php" method="post">
         Data:&#160;<input name="data" value="'.(isset($_REQUEST['data'])?htmlspecialchars($_REQUEST['data']):'PHP QR Code :)').'" />&#160;
         ECC:&#160;<select name="level">
@@ -83,37 +90,19 @@
     echo '</select>&#160;
         <input type="submit" value="GENERATE" /></form><hr/>';
 
-	//display generated file ---------------------------------------------------
-	
-	QRtools::startTimeBenchmark();
-	
-	$pngFilename = $FILE_TEMP_DIR.'test'.md5($textData.'|'.$errorCorrectionLevel.'|'.$matrixPointSize).'.png';
-	QRcode::png($textData, $pngFilename, $errorCorrectionLevel, $matrixPointSize, 2);    
-	
-	$canvasCode = QRcode::canvas($textData, false, $errorCorrectionLevel, false, $matrixPointSize, 2);
-	QRtools::markTime('canvas demo end');
-	
-	$svgFilename = $FILE_TEMP_DIR.'test'.md5($textData.'|'.$errorCorrectionLevel.'|'.$matrixPointSize).'.svgz';
-	$svgCode = QRcode::svg($textData, false, $svgFilename, $errorCorrectionLevel, false, $matrixPointSize, 2, true);
-	QRtools::markTime('svg demo end');
-	
-	echo '
-	<table cellspacing="20">
-	<tr>
-		<th style="font-size:0.8em;text-align:center;">PNG</th>
-		<th style="font-size:0.8em;text-align:center;">CANVAS</th>
-		<th style="font-size:0.8em;text-align:center;">SVG</th>
-	</tr>
-	<tr>
-		<td><img src="'.$FILE_WEB_DIR.basename($pngFilename).'" /></td>
-		<td>'.$canvasCode.'</td>
-		<td>'.$svgCode.'</td>
-	</tr>
-	</table>
-	<hr />';
-	
+    //display generated file ---------------------------------------------------
+    
+    $pngFilename = $FILE_TEMP_DIR.'test'.md5($textData.'|'.$errorCorrectionLevel.'|'.$matrixPointSize).'.png';
+    QRcode::png($textData, $pngFilename, $errorCorrectionLevel, $matrixPointSize, 2);    
+    
+    echo '<img src="'.$FILE_WEB_DIR.basename($pngFilename).'" /><hr />';
+
     // benchmark ---------------------------------------------------------------
-	
+    
     QRtools::timeBenchmark();    
+    
+    // links ---------------------------------------------------------------
+    
+    echo '<hr />';
 
     echo '</body></html>';

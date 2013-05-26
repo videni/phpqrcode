@@ -5,7 +5,7 @@
  * Toolset, handy and debug utilites.
  *
  * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+ * Copyright (C) 2010-2013 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,10 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+	/** @addtogroup CoreGroup */
+	/** @{ */
+	
+	/** Helper class */
     class QRtools {
     
 		public static $timeBenchmarkStarted = false;
@@ -180,5 +184,7 @@
         
     }
     
+	/** @}*/
+	
     //##########################################################################
     

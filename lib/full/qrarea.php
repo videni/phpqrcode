@@ -8,7 +8,7 @@
  * Copyright (C) 2006, 2007, 2008, 2009 Kentaro Fukuchi <fukuchi@megaui.net>
  *
  * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+ * Copyright (C) 2010-2013 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,12 +36,15 @@
     
     define('QR_AREA_X', 0);
     define('QR_AREA_Y', 1);
-	
-	define('QR_AREA_TRACKER', 0);
+    
+    define('QR_AREA_TRACKER', 0);
     define('QR_AREA_PATH',    1);
-	define('QR_AREA_POINT',   2);
-	define('QR_AREA_RECT',    3);
-	define('QR_AREA_LSHAPE',  4);
+    define('QR_AREA_POINT',   2);
+    define('QR_AREA_RECT',    3);
+    define('QR_AREA_LSHAPE',  4);
+    
+    /** @addtogroup OutputGroup */
+    /** @{ */
     
     class QRareaGroup {
         public $total = 0;
@@ -62,17 +65,17 @@
     }
 
     //##########################################################################
-
+    
     class QRarea {
     
-        protected $width = 0;
+        public    $width = 0;
         private   $tab = array();
         private   $tab_edges = array();
         private   $groups = array();
         private   $curr_group = 0;
-		protected $paths = array();
-	
-	
+        public    $paths = array();
+    
+    
         //----------------------------------------------------------------------
         public function __construct($source_tab) 
         {
@@ -80,15 +83,15 @@
             $this->width = count($source_tab);
             $this->tab = array();
             $this->tab_edges = array();
-			$this->paths = array();
-	
+            $this->paths = array();
+    
             foreach ($source_tab as $line) {
                 $arr = array();
                 $arr_edge = array();
                 $px=0;
-				
+                
                 foreach (str_split($line) as $item) {
-					
+                    
                     if ($py<7 && $px<7)
                         $item = 0;
                         
@@ -97,7 +100,7 @@
                         
                     if ($py>=($this->width-7) && $px<7)
                         $item = 0;
-									
+                                    
                     $arr[] = (int)$item;
                     $arr_edge[] = array(false, false, false, false);
                     
@@ -108,44 +111,60 @@
                 $this->tab_edges[] = $arr_edge;
                 $py++;
             }
-			
-			$this->paths[] = array(QR_AREA_TRACKER, 0,0);
-			$this->paths[] = array(QR_AREA_TRACKER, 0,($this->width-7));
-			$this->paths[] = array(QR_AREA_TRACKER, ($this->width-7),0);
+            
+            $this->paths[] = array(QR_AREA_TRACKER, 0,0);
+            $this->paths[] = array(QR_AREA_TRACKER, 0,($this->width-7));
+            $this->paths[] = array(QR_AREA_TRACKER, ($this->width-7),0);
             
             $this->groups = array();
             $this->curr_group = 1;
         }
-	
-		//----------------------------------------------------------------------
+    
+        //----------------------------------------------------------------------
         public function getGroups() 
         {
-			return $this->groups;
-		}
-		
-		//----------------------------------------------------------------------
+            return $this->groups;
+        }
+        
+        //----------------------------------------------------------------------
         public function getPaths() 
         {
-			return $this->paths;
-		}
-		
-		//----------------------------------------------------------------------
+            return $this->paths;
+        }
+        
+        //----------------------------------------------------------------------
         public function getWidth() 
         {
-			return $this->width;
-		}
-		
+            return $this->width;
+        }
+        
         //----------------------------------------------------------------------
         public function dumpTab() 
         {
-            echo "<table border='1'>";
+            echo "<style>";
+            echo "td { height: 2.5em;  color: black; font-size: 8px;
+            border-top: 1px solid silver; border-left: 1px solid silver }";
+            echo "table { border-bottom: 1px solid silver; border-right: 1px solid silver }";
+            echo "</style>";
+            echo "<table border=0 cellpadding=0 cellspacing=0>";
+            
+            $colorTab = array();
+            
+            foreach($this->tab as $line) {
+                foreach($line as $item) {
+                    if (!isset($colorTab[$item])) {
+                        $colorTab[$item] = 'hsl('.mt_rand(0, 360).', '.floor((mt_rand(0, 25))+75).'%, 50%)';
+                    }
+                }
+            }
+            
             foreach($this->tab as $line) {
                 echo "<tr>";
                 foreach($line as $item) {
                     if ($item == 0) {
                         echo "<td>&nbsp;</td>";
                     } else {
-                        echo "<td style='text-align:center;width:1.5em;'>".$item."</td>";
+                        echo "<td style='text-align:center;width: 4em;background:".$colorTab[$item]."'>".$item."</td>";
                     }
                 }
                 echo "</tr>";
@@ -157,7 +176,7 @@
         public function dumpEdges() 
         {
             $style_off = '1px dotted silver;';
-            $style_on = '2px solid red;';
+            $style_on = '3px solid red;';
             
             $colorAlloc = array();
             
@@ -193,7 +212,7 @@
                     
                     if ($grp>0) {
                         if (!isset($colorAlloc[$grp])) {
-                            $colorAlloc[$grp] = '#'.substr('0'.dechex(rand(100,200)),-2).substr('0'.dechex(rand(100,200)),-2).substr('0'.dechex(rand(100,200)),-2);
+                            $colorAlloc[$grp] = 'hsl('.mt_rand(0, 360).', '.floor((mt_rand(0, 25))+75).'%, 50%)';
                         }
                 
                         $color = 'background:'.$colorAlloc[$grp];
@@ -211,47 +230,47 @@
             echo "</table>";
         }
         
-		//----------------------------------------------------------------------
-		private static function rle(&$stringData)
-		{
-			$outArray = array();
-			$symbolArray = str_split($stringData);
-			$last = '';
-			$run = 1;
-			
-			while (count($symbolArray) > 0) {
-				$symbol = array_shift($symbolArray);
-				
-				if ($symbol != $last) {
-					if ($run > 1) 
-						$outArray[] = $run;
-					
-					if ($last != '')
-						$outArray[] = $last;
-						
-					$run = 1;
-					$last = $symbol;
-				} else {
-					$run++;
-				}
-			}
-			
-			if ($run > 1) 
-				$outArray[] = $run;
-				
-			$outArray[] = $last;
-			
-			$stringData = $outArray;
-		}
-		
+        //----------------------------------------------------------------------
+        private static function rle(&$stringData)
+        {
+            $outArray = array();
+            $symbolArray = str_split($stringData);
+            $last = '';
+            $run = 1;
+            
+            while (count($symbolArray) > 0) {
+                $symbol = array_shift($symbolArray);
+                
+                if ($symbol != $last) {
+                    if ($run > 1) 
+                        $outArray[] = $run;
+                    
+                    if ($last != '')
+                        $outArray[] = $last;
+                        
+                    $run = 1;
+                    $last = $symbol;
+                } else {
+                    $run++;
+                }
+            }
+            
+            if ($run > 1) 
+                $outArray[] = $run;
+                
+            $outArray[] = $last;
+            
+            $stringData = $outArray;
+        }
+        
     
         //----------------------------------------------------------------------
         private function getAt($posx, $posy)
         {
             if (($posx<0)||($posy<0)||($posx>=$this->width)||($posy>=$this->width))
-                return 0;			
+                return 0;           
                 
-            return $this->tab[$posy][$posx];			
+            return $this->tab[$posy][$posx];            
         }
         
         //----------------------------------------------------------------------
@@ -261,9 +280,9 @@
             $posy = $elem[1]+$deltay;
             
             if (($posx<0)||($posy<0)||($posx>=$this->width)||($posy>=$this->width))
-                return 0;			
+                return 0;           
                 
-            return $this->tab[$posy][$posx];			
+            return $this->tab[$posy][$posx];            
         }
         
         //----------------------------------------------------------------------
@@ -344,95 +363,94 @@
             }
         }
         
-		
-		//----------------------------------------------------------------------
+        //----------------------------------------------------------------------
         private function detectSquare($group)
         {
-			$max_x = 0;
-			$max_y = 0;
-			$min_x = $this->width;
-			$min_y = $this->width;
-			
-			foreach($group->points as $elem) {
-				$min_x = min($min_x, $elem[QR_AREA_X]);
-				$max_x = max($max_x, $elem[QR_AREA_X]);
-				$min_y = min($min_y, $elem[QR_AREA_Y]);
-				$max_y = max($max_y, $elem[QR_AREA_Y]);
-			}
-			
-			return array($min_x, $min_y, $max_x+1, $max_y+1);
-		}
-		
+            $max_x = 0;
+            $max_y = 0;
+            $min_x = $this->width;
+            $min_y = $this->width;
+            
+            foreach($group->points as $elem) {
+                $min_x = min($min_x, $elem[QR_AREA_X]);
+                $max_x = max($max_x, $elem[QR_AREA_X]);
+                $min_y = min($min_y, $elem[QR_AREA_Y]);
+                $max_y = max($max_y, $elem[QR_AREA_Y]);
+            }
+            
+            return array($min_x, $min_y, $max_x+1, $max_y+1);
+        }
+        
         //----------------------------------------------------------------------
         public function detectAreas()
         {
-			$squares = array();
-			$points = array();
-			$lshapes = array();
-			
+            $squares = array();
+            $points = array();
+            $lshapes = array();
+            
             foreach ($this->groups as $groupId=>&$group) {
                 if ($group->total > 3) {
-				
-					if ((!$group->vertical)||(!$group->horizontal)) {
-					
-						$squareCoord = $this->detectSquare($group);
-						array_unshift($squareCoord, QR_AREA_RECT);
-						
-						$this->paths[] = $squareCoord;
-					
-					} else {
-				
-						$this->detectPaths($group);
-						unset($group->points);
-						
-						foreach($group->paths as &$path)
-							self::rle($path[2]);
-						
-						$this->paths[] = array(QR_AREA_PATH, $group->paths);
-					}
+                
+                    if ((!$group->vertical)||(!$group->horizontal)) {
+                    
+                        $squareCoord = $this->detectSquare($group);
+                        array_unshift($squareCoord, QR_AREA_RECT);
+                        
+                        $this->paths[] = $squareCoord;
+                    
+                    } else {
+                
+                        $this->detectPaths($group);
+                        unset($group->points);
+                        
+                        foreach($group->paths as &$path)
+                            self::rle($path[2]);
+                        
+                        $this->paths[] = array(QR_AREA_PATH, $group->paths);
+                    }
                 } else if (($group->total == 3)&&($group->vertical)&&($group->horizontal)) {
-					$squareCoord = $this->detectSquare($group);
-					$variant = 0;
-					
-					if ($this->getOnElem($squareCoord, 0, 0) != $group->id)
-						$variant = 0;
-						
-					if ($this->getOnElem($squareCoord, 1, 0) != $group->id)
-						$variant = 1;
-						
-					if ($this->getOnElem($squareCoord, 0, 1) != $group->id)
-						$variant = 2;
-						
-					if ($this->getOnElem($squareCoord, 1, 1) != $group->id)
-						$variant = 3;
-						
-					$lshapes[] = $squareCoord[QR_AREA_X];
-					$lshapes[] = $squareCoord[QR_AREA_Y];
-					$lshapes[] = $variant;
-					
-				} else if ($group->total >= 2) {
-					$squareCoord = $this->detectSquare($group);
-					$squares = array_merge($squares, $squareCoord);
-				} else if ($group->total == 1) {
-					$points[] = $group->points[0][0];
-					$points[] = $group->points[0][1];
-				}
+                    $squareCoord = $this->detectSquare($group);
+                    $variant = 0;
+                    
+                    if ($this->getOnElem($squareCoord, 0, 0) != $group->id)
+                        $variant = 0;
+                        
+                    if ($this->getOnElem($squareCoord, 1, 0) != $group->id)
+                        $variant = 1;
+                        
+                    if ($this->getOnElem($squareCoord, 0, 1) != $group->id)
+                        $variant = 2;
+                        
+                    if ($this->getOnElem($squareCoord, 1, 1) != $group->id)
+                        $variant = 3;
+                        
+                    $lshapes[] = $squareCoord[QR_AREA_X];
+                    $lshapes[] = $squareCoord[QR_AREA_Y];
+                    $lshapes[] = $variant;
+                    
+                } else if ($group->total >= 2) {
+                    $squareCoord = $this->detectSquare($group);
+                    $squares = array_merge($squares, $squareCoord);
+                } else if ($group->total == 1) {
+                    $points[] = $group->points[0][0];
+                    $points[] = $group->points[0][1];
+                }
             }
-			
-			if (count($points) > 0) {
-				array_unshift($points, QR_AREA_POINT);
-				$this->paths[] = $points;
-			}
-			
-			if (count($squares) > 0) {
-				array_unshift($squares, QR_AREA_RECT);
-				$this->paths[] = $squares;
-			}
-			
-			if (count($lshapes) > 0) {
-				array_unshift($lshapes, QR_AREA_LSHAPE);
-				$this->paths[] = $lshapes;
-			}
+            
+            if (count($points) > 0) {
+                array_unshift($points, QR_AREA_POINT);
+                $this->paths[] = $points;
+            }
+            
+            if (count($squares) > 0) {
+                array_unshift($squares, QR_AREA_RECT);
+                $this->paths[] = $squares;
+            }
+            
+            if (count($lshapes) > 0) {
+                array_unshift($lshapes, QR_AREA_LSHAPE);
+                $this->paths[] = $lshapes;
+            }
         }
         
         //----------------------------------------------------------------------
@@ -451,18 +469,18 @@
         private function markAdjacentEdges($group)
         {
             foreach($group->points as $elem) {
-				if ($this->getOnElem($elem, -1, 0) == $group->id)
-					$this->reserveEdgeOnElem($elem, QR_AREA_W);
-					
-				if ($this->getOnElem($elem, +1, 0) == $group->id)
-					$this->reserveEdgeOnElem($elem, QR_AREA_E);
-					
-				if ($this->getOnElem($elem, 0, -1) == $group->id)
-					$this->reserveEdgeOnElem($elem, QR_AREA_N);
-				
-				if ($this->getOnElem($elem, 0, +1) == $group->id)
-					$this->reserveEdgeOnElem($elem, QR_AREA_S);
-			}
+                if ($this->getOnElem($elem, -1, 0) == $group->id)
+                    $this->reserveEdgeOnElem($elem, QR_AREA_W);
+                    
+                if ($this->getOnElem($elem, +1, 0) == $group->id)
+                    $this->reserveEdgeOnElem($elem, QR_AREA_E);
+                    
+                if ($this->getOnElem($elem, 0, -1) == $group->id)
+                    $this->reserveEdgeOnElem($elem, QR_AREA_N);
+                
+                if ($this->getOnElem($elem, 0, +1) == $group->id)
+                    $this->reserveEdgeOnElem($elem, QR_AREA_S);
+            }
         }
         
         //----------------------------------------------------------------------
@@ -479,7 +497,7 @@
                 
                 $edgeTab = $this->tab_edges[$elem[QR_AREA_Y]][$elem[QR_AREA_X]];
                 
-				if (!(  $edgeTab[QR_AREA_N] 
+                if (!(  $edgeTab[QR_AREA_N] 
                     &&  $edgeTab[QR_AREA_E] 
                     &&  $edgeTab[QR_AREA_S] 
                     &&  $edgeTab[QR_AREA_W])) {
@@ -490,7 +508,7 @@
                         $group->paths[] = array($elem[QR_AREA_X], $elem[QR_AREA_Y]+1, $waylistw);
                     }
                 }
-			}
+            }
   
         }
         
@@ -498,69 +516,71 @@
         private function findPath($group, $sx, $sy)
         {
             $px = $sx;
-			$py = $sy;
-		
-			$waylist = '';
-			$dir = '';
-			$lastdir = '';
+            $py = $sy;
+        
+            $waylist = '';
+            $dir = '';
+            $lastdir = '';
             
             $moves = array(
             // magic :)
-				0=>'',	1=>'L',	2=>'T',	3=>'L',	4=>'B',	5=>'B',	6=>'B,T', 7=>'B'
-                ,8=>'R', 9=>'R,L', 10=>'T',	11=>'L',12=>'R',13=>'R',14=>'T',15=>''
-			);
+                0=>'',  1=>'L', 2=>'T', 3=>'L', 4=>'B', 5=>'B', 6=>'B,T', 7=>'B'
+                ,8=>'R', 9=>'R,L', 10=>'T', 11=>'L',12=>'R',13=>'R',14=>'T',15=>''
+            );
             
             do
-			{
-				$Q  = ($this->getAt($px-1, $py-1) == $group->id)?1:0;
-				$Q += ($this->getAt($px, $py-1)   == $group->id)?2:0;
-				$Q += ($this->getAt($px-1, $py)   == $group->id)?4:0;
-				$Q += ($this->getAt($px, $py)     == $group->id)?8:0;
-				
-				if ($moves[$Q] == '') 
-					throw new Exception('It should NEVER happened!');
-					
-				$move_expl = explode(',', $moves[$Q]);
-				$have_way = false;
-				
-				$dir = '';
+            {
+                $Q  = ($this->getAt($px-1, $py-1) == $group->id)?1:0;
+                $Q += ($this->getAt($px, $py-1)   == $group->id)?2:0;
+                $Q += ($this->getAt($px-1, $py)   == $group->id)?4:0;
+                $Q += ($this->getAt($px, $py)     == $group->id)?8:0;
                 
-				while ((count($move_expl) > 0)&&($have_way == false)) {
-					$way = array_shift($move_expl);
-					
-					if (($have_way==false)&&($way=='R')&&($this->tab_edges[$py][$px][QR_AREA_N]==false)) {
-						$have_way = true;
+                if ($moves[$Q] == '') 
+                    throw new Exception('It should NEVER happened!');
+                    
+                $move_expl = explode(',', $moves[$Q]);
+                $have_way = false;
+                
+                $dir = '';
+                
+                while ((count($move_expl) > 0)&&($have_way == false)) {
+                    $way = array_shift($move_expl);
+                    
+                    if (($have_way==false)&&($way=='R')&&($this->tab_edges[$py][$px][QR_AREA_N]==false)) {
+                        $have_way = true;
                         $dir = $way;
                         $this->reserveEdge($px, $py, QR_AREA_N);
-						$px++;						
-					} 
-					
-					if (($have_way==false)&&($way=='B')&&($this->tab_edges[$py][$px-1][QR_AREA_E]==false)) {
-						$have_way = true;
-						$dir = $way;
+                        $px++;                      
+                    } 
+                    
+                    if (($have_way==false)&&($way=='B')&&($this->tab_edges[$py][$px-1][QR_AREA_E]==false)) {
+                        $have_way = true;
+                        $dir = $way;
                         $this->reserveEdge($px-1, $py, QR_AREA_E);
-						$py++;						
-					} 
-					
-					if (($have_way==false)&&($way=='L')&&($this->tab_edges[$py-1][$px-1][QR_AREA_S]==false)) {
-						$have_way = true;
-						$dir = $way;
+                        $py++;                      
+                    } 
+                    
+                    if (($have_way==false)&&($way=='L')&&($this->tab_edges[$py-1][$px-1][QR_AREA_S]==false)) {
+                        $have_way = true;
+                        $dir = $way;
                         $this->reserveEdge($px-1, $py-1, QR_AREA_S);
-						$px--;						
-					} 
-					
-					if (($have_way==false)&&($way=='T')&&($this->tab_edges[$py-1][$px][QR_AREA_W]==false)) {
-						$have_way = true;
-						$dir = $way;
+                        $px--;                      
+                    } 
+                    
+                    if (($have_way==false)&&($way=='T')&&($this->tab_edges[$py-1][$px][QR_AREA_W]==false)) {
+                        $have_way = true;
+                        $dir = $way;
                         $this->reserveEdge($px, $py-1, QR_AREA_W);
-						$py--;						
-					} 
-				}
+                        $py--;                      
+                    } 
+                }
 
-				$waylist .= $dir;
-			
-			} while (!(($px==$sx)&&($py==$sy)));
+                $waylist .= $dir;
+            
+            } while (!(($px==$sx)&&($py==$sy)));
             
             return $waylist;
         }
     }
+    
+    /** @} */

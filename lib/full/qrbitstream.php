@@ -8,7 +8,7 @@
  * Copyright (C) 2006, 2007, 2008, 2009 Kentaro Fukuchi <fukuchi@megaui.net>
  *
  * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+ * Copyright (C) 2010-2013 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -24,18 +24,38 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-     
+    
+	/** @addtogroup CoreGroup */
+	/** @{ */
+	
+    /**
+    PHP bit stream.
+    Class implementing array of bits (= 1 or 0 ints). Allows to initialize and append
+    bits from given Integer or array of Bytes.
+    */
     class QRbitstream {
     
+        /**
+        Array containing bit data stream 
+        */
         public $data = array();
         
         //----------------------------------------------------------------------
+        /** 
+        @return Integer size of byte stream
+        */
         public function size()
         {
             return count($this->data);
         }
         
         //----------------------------------------------------------------------
+        /** 
+        Allocates bit stream, fills bit data stream with 0's.
+        This operation is __destructive__, will replace orginal stream contents!
+        @param Integer $setLength desired target stream size
+        @return Integer 0 on success, other on failure
+        */
         public function allocate($setLength)
         {
             $this->data = array_fill(0, $setLength, 0);
@@ -43,6 +63,12 @@
         }
     
         //----------------------------------------------------------------------
+        /**
+        Creates new bit stream from given Integer number.
+        @param Integer $bits bit count 
+        @param Integer $num integer to convert
+        @return QRbitstream bit stream object containing first $bits bits from $num in order from LSB to MSB
+        */
         public static function newFromNum($bits, $num)
         {
             $bstream = new QRbitstream();
@@ -62,6 +88,12 @@
         }
         
         //----------------------------------------------------------------------
+        /**
+        Creates new bit stream from given byte array.
+        @param Integer $size size of array
+        @param Array $data array ob bytes
+        @return QRbitstream bit stream object containing bit contents of given bytes array
+        */
         public static function newFromBytes($size, $data)
         {
             $bstream = new QRbitstream();
@@ -85,6 +117,11 @@
         }
         
         //----------------------------------------------------------------------
+        /**
+        Appends given bit stream at end of this stream.
+        @param QRbitstream $arg bit stream to be appended
+        @return Integer status of append operation, 0 when success, -1 when $arg is null
+        */
         public function append(QRbitstream $arg)
         {
             if (is_null($arg)) {
@@ -106,6 +143,12 @@
         }
         
         //----------------------------------------------------------------------
+        /**
+        Appends bit stream cteated from given Integer number at end of current stream.
+        @param Integer $bits bit count 
+        @param Integer $num integer to convert
+        @return Integer status of append operation, status of append operation, 0 when success, -1 otherwise
+        */
         public function appendNum($bits, $num)
         {
             if ($bits == 0) 
@@ -123,6 +166,12 @@
         }
 
         //----------------------------------------------------------------------
+        /**
+        Appends bit stream created from from given byte array at end of current stream.
+        @param Integer $size size of array
+        @param Array $data array ob bytes
+        @return Integer status of append operation, status of append operation, 0 when success, -1 otherwise
+        */
         public function appendBytes($size, $data)
         {
             if ($size == 0) 
@@ -140,6 +189,10 @@
         }
         
         //----------------------------------------------------------------------
+        /** 
+        Converts current bit stream into byte array.
+        @returns Array array of bytes
+        */
         public function toByte()
         {
         
@@ -178,3 +231,5 @@
         }
 
     }
+
+	/** @}*/

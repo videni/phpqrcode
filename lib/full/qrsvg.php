@@ -8,7 +8,7 @@
  * Copyright (C) 2006, 2007, 2008, 2009 Kentaro Fukuchi <fukuchi@megaui.net>
  *
  * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+ * Copyright (C) 2010-2013 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,10 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
  
- class QRsvgOutput extends QRarea {
+	/** @addtogroup OutputGroup */
+	/** @{ */
+	
+	class QRsvgOutput extends QRarea {
  
 		public function __construct($source_tab) 
 		{
@@ -160,6 +163,7 @@
 			
 			return join("\n", $lib)."\n".join("\n", $svg);
 		}
-		
-		
- }
+	}
+ 
+	/** @} */
+	

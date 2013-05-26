@@ -6,7 +6,7 @@ LGPL-licensed implementation based on C libqrencode by Kentaro Fukuchi.
 
 ## LICENSING ##
 
-Copyright (C) 2010 by Dominik Dzienia 
+Copyright (C) 2010-2013 by Dominik Dzienia 
 
 This library is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the Free

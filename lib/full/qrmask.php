@@ -8,7 +8,7 @@
  * Copyright (C) 2006, 2007, 2008, 2009 Kentaro Fukuchi <fukuchi@megaui.net>
  *
  * PHP QR Code is distributed under LGPL 3
- * Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+ * Copyright (C) 2010-2013 Dominik Dzienia <deltalab at poczta dot fm>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,11 +25,16 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
  
+	
+	
 	define('N1', 3);
 	define('N2', 3);
 	define('N3', 40);
 	define('N4', 10);
 
+	/** @addtogroup CoreGroup */
+	/** @{ */
+	
 	class QRmask {
 	
 		public $runLength = array();
@@ -171,7 +176,7 @@
                     $b += (int)(ord($d[$y][$x]) & 1);
                 }
             }
-
+			
             return $b;
         }
         
@@ -326,3 +331,5 @@
         
         //----------------------------------------------------------------------
     }
+
+	/** @}*/
