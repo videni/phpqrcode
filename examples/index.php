@@ -134,7 +134,7 @@
         <div id="codeCnt">
             <div class="codein">
                 <div class="header">Sourcecode <div class="filename"><a href="<?php echo $exampleFile; ?>"><?php echo $exampleFile; ?></a></div></div>
-                <div class="cnt cntsmaller"><?php highlight_string(file_get_contents(dirname(__FILE__).'/'.$exampleFile)); ?></div>
+                <div class="cnt cntsmaller" style="overflow:auto;white-space:nowrap;"><?php highlight_string(file_get_contents(dirname(__FILE__).'/'.$exampleFile)); ?></div>
             </div>
         </div>
     </div>

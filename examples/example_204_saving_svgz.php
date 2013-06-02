@@ -31,5 +31,5 @@
     echo '<b>Compressed SVGZ size:</b> '.$sizeGzip.' B <br/>';
     echo '<b>Saved:</b>: '.number_format($saved, 3).'%<br/>';
     
-    echo '<br/>Notice: some browsers will open SVGZ files (like Opera) some wont (like Chrome)<br/>';
-    echo '<iframe src="temp/'.$saveToFile.'" style="width:98%;height:160px"></iframe>';
+    echo '<br/>Notice: your server need to be configured for SVGZ output - look into sfproxy.php<br/>';
+    echo '<iframe src="'.EXAMPLE_TMP_URLRELPATH.$saveToFile.'" style="width:98%;height:160px"></iframe>';

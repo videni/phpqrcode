@@ -1,7 +1,7 @@
 <?php
 
     include('../lib/full/qrlib.php');
-	include('config.php');
+    include('config.php');
 
     // debuging vector subshapes
     // visible object categories:
@@ -53,26 +53,31 @@
         return array($R, $G, $B);
     }
     
+    // QR code lib area finding
     $enc = QRencode::factory($eccLevel, 1, 0);
     $tab_src = $enc->encode($codeContents, false);
     $area = new QRarea($tab_src);
     $area->detectGroups();
     $area->detectAreas();
   
+    // GD2 magical rendering
     $imgW = $area->width;
     $imgH = $area->width;
     
-    $target_image = ImageCreate(($imgW + $marginSize*2) * $pixelPerPoint, ($imgH + $marginSize*2) * $pixelPerPoint);
+    $target_image = imagecreate(
+        ($imgW + $marginSize*2) * $pixelPerPoint, 
+        ($imgH + $marginSize*2) * $pixelPerPoint
+    );
     
-    $colBg = ImageColorAllocate($target_image, 255, 255, 255);      // BG, white 
-    $colTxt  = ImageColorAllocate($target_image, 0, 0, 0);          // TXT, black 
+    $colBg      = imagecolorallocate($target_image, 255, 255, 255); // BG, white 
+    $colTxt     = imagecolorallocate($target_image, 0, 0, 0);       // TXT, black 
     
-    $colPix     = ImageColorAllocate($target_image, 40, 40, 40);    // Pixel 
-    $colRect    = ImageColorAllocate($target_image, 190, 190, 190); // Rect 
-    $colTracker = ImageColorAllocate($target_image, 0, 220, 0);     // Tracker 
-    $colTrackBg = ImageColorAllocate($target_image, 0, 255, 0);     // Tracker-Bg
-    $colLshape  = ImageColorAllocate($target_image, 30, 30, 255);   // L-Shape 
-    $colBgL     = ImageColorAllocate($target_image, 240, 240, 255); // L-Shape Cut-out 
+    $colPix     = imagecolorallocate($target_image, 40, 40, 40);    // Pixel 
+    $colRect    = imagecolorallocate($target_image, 190, 190, 190); // Rect 
+    $colTracker = imagecolorallocate($target_image, 0, 220, 0);     // Tracker 
+    $colTrackBg = imagecolorallocate($target_image, 0, 255, 0);     // Tracker-Bg
+    $colLshape  = imagecolorallocate($target_image, 30, 30, 255);   // L-Shape 
+    $colBgL     = imagecolorallocate($target_image, 240, 240, 255); // L-Shape Cut-out 
     
     $pNum = 0;
     
@@ -80,8 +85,38 @@
     
     foreach ($area->paths as $path) {
         switch ($path[0]) {
+        
             case QR_AREA_PATH:
 
+                    // nice random colors
+                    $rgb = HSVtoRGB(array(
+                        mt_rand(0, 360) / 360.0,
+                        ((mt_rand(0, 25))+75) / 100.0,
+                        0.9
+                    ));
+                    
+                    $colShape = imagecolorallocate(
+                        $target_image, 
+                        floor($rgb[0]*255), 
+                        floor($rgb[1]*255), 
+                        floor($rgb[2]*255)
+                    );
+                    $subShape = 0;
+                    
+                    // fill pattern
+                    $fill_image = imagecreatetruecolor(5, 5);
+                    $colFillBg = imagecolorallocate($fill_image, 255, 255, 255);
+                    $colFill = imagecolorallocate(
+                        $fill_image, 
+                        floor($rgb[0]*255), 
+                        floor($rgb[1]*255), 
+                        floor($rgb[2]*255)
+                    );
+                    imagefilledrectangle ($fill_image, 0, 0, 5, 5, $colFillBg);
+                    imagesetthickness($fill_image, 1);
+                    imageline($fill_image, 0 , 4 , 4 , 0 , $colFill);
+
+                    // we iterate over all subshapes of shape
                     foreach($path[1] as $pathDetails) {
                         
                         $points = array();
@@ -92,22 +127,13 @@
                         $points[] = mapCoord($px);
                         $points[] = mapCoord($py);
                         
-                        $rgb = HSVtoRGB(array(
-                            mt_rand(0, 360) / 360.0,
-                            ((mt_rand(0, 25))+75) / 100.0,
-                            0.8
-                        ));
-                        
-                        $colShape = ImageColorAllocate($target_image, floor($rgb[0]*255), floor($rgb[1]*255), floor($rgb[2]*255));
-                        
-                        imagestring($target_image, 1, mapCoord($px)+2, mapCoord($py)+2, $pNum, $colShape);
-                        
                         while(count($rle_steps) > 0) {
                         
                             $delta = 1;
                             
                             $operator = array_shift($rle_steps);
-                            if (($operator != 'R') && ($operator != 'L') && ($operator != 'T') && ($operator != 'B')) {
+                            if (($operator != 'R') && ($operator != 'L') 
+                                && ($operator != 'T') && ($operator != 'B')) {
                                 $delta = (int)$operator;
                                 $operator = array_shift($rle_steps);
                             }
@@ -121,11 +147,59 @@
                             $points[] = mapCoord($py);
                         }
                         
-                        imagesetthickness($target_image, 2);
-                        imagepolygon($target_image, $points, count($points)/2 , $colShape);
+                        if ($subShape == 0) { 
                         
-                        $pNum++;
+                            // first polygon is outline
+                            
+                            // fill
+                            imagesettile($target_image, $fill_image);
+                            imagesetthickness($target_image, 2);
+                            imagefilledpolygon(
+                                $target_image, 
+                                $points, 
+                                count($points)/2, 
+                                IMG_COLOR_TILED
+                            );
+                            
+                            // look mom, Decimal System!
+                            $labelCharCount = 1+floor(log10(max(1, $pNum)));
+                            
+                            // label BG + TXT
+                            imagefilledrectangle(
+                                $target_image, mapCoord($px)+2, 
+                                mapCoord($py)+2, 
+                                mapCoord($px)+2+imagefontwidth(1)*$labelCharCount, 
+                                mapCoord($py)+2+imagefontheight(1), 
+                                $colBg
+                            );
+                            imagestring(
+                                $target_image, 
+                                1, 
+                                mapCoord($px)+2, 
+                                mapCoord($py)+2, 
+                                $pNum, 
+                                $colTxt
+                            );
+                            
+                            // outline line
+                            imagepolygon($target_image, $points, count($points)/2 , $colShape);
+                            
+                        } else { 
+                        
+                            // other polygons describes "holes" in shape
+                            imagesetthickness($target_image, 2);
+                            imagefilledpolygon($target_image, $points, count($points)/2 , $colBg);
+                            imagepolygon($target_image, $points, count($points)/2 , $colShape);
+                            imagestring($target_image, 1, mapCoord($px)+2, mapCoord($py)+2, $pNum, $colShape);
+                            
+                        }
+                                           
+                        
+                        $subShape++;
                     }
+                    
+                    imagedestroy($fill_image);
+                    $pNum++;
                     
                 break;
                 
@@ -137,7 +211,14 @@
                         $px = array_shift($path);
                         $py = array_shift($path);
                         
-                        imagefilledrectangle($target_image, mapCoord($px), mapCoord($py), mapCoord($px+1)-1, mapCoord($py+1)-1, $colPix);
+                        imagefilledrectangle(
+                            $target_image, 
+                            mapCoord($px), 
+                            mapCoord($py), 
+                            mapCoord($px+1)-1, 
+                            mapCoord($py+1)-1, 
+                            $colPix
+                        );
                     }
                     
                 break;
@@ -152,7 +233,14 @@
                         $ex = array_shift($path);
                         $ey = array_shift($path);
                         
-                        imagefilledrectangle($target_image, mapCoord($px), mapCoord($py), mapCoord($ex)-1, mapCoord($ey)-1, $colRect);
+                        imagefilledrectangle(
+                            $target_image, 
+                            mapCoord($px), 
+                            mapCoord($py), 
+                            mapCoord($ex)-1, 
+                            mapCoord($ey)-1, 
+                            $colRect
+                        );
                     }
                     
                 break;                      
@@ -166,11 +254,25 @@
                         $py = array_shift($path);
                         $mode = (int)array_shift($path);
                         
-                        imagefilledrectangle($target_image, mapCoord($px), mapCoord($py), mapCoord($px+2)-1, mapCoord($py+2)-1, $colLshape);
+                        imagefilledrectangle(
+                            $target_image, 
+                            mapCoord($px), 
+                            mapCoord($py), 
+                            mapCoord($px+2)-1, 
+                            mapCoord($py+2)-1, 
+                            $colLshape
+                        );
                     
                         $offsetX = $px + ($mode % 2);
                         $offsetY = $py + floor($mode / 2);
-                        imagefilledrectangle($target_image, mapCoord($offsetX), mapCoord($offsetY), mapCoord($offsetX+1)-1, mapCoord($offsetY+1)-1, $colBgL);
+                        imagefilledrectangle(
+                            $target_image, 
+                            mapCoord($offsetX), 
+                            mapCoord($offsetY), 
+                            mapCoord($offsetX+1)-1, 
+                            mapCoord($offsetY+1)-1, 
+                            $colBgL
+                        );
                     }
                     
                 break;
@@ -182,17 +284,37 @@
                     $px = array_shift($path);
                     $py = array_shift($path);
                         
-                    imagefilledrectangle($target_image, mapCoord($px), mapCoord($py), mapCoord($px+7)-1, mapCoord($py+7)-1, $colTracker);
-                    imagefilledrectangle($target_image, mapCoord($px+1), mapCoord($py+1), mapCoord($px+6)-1, mapCoord($py+6)-1, $colTrackBg);
-                    imagefilledrectangle($target_image, mapCoord($px+2), mapCoord($py+2), mapCoord($px+5)-1, mapCoord($py+5)-1, $colTracker);
-                    
+                    imagefilledrectangle(
+                        $target_image, 
+                        mapCoord($px), 
+                        mapCoord($py), 
+                        mapCoord($px+7)-1, 
+                        mapCoord($py+7)-1, 
+                        $colTracker
+                    );
+                    imagefilledrectangle(
+                        $target_image, 
+                        mapCoord($px+1), 
+                        mapCoord($py+1), 
+                        mapCoord($px+6)-1, 
+                        mapCoord($py+6)-1, 
+                        $colTrackBg
+                    );
+                    imagefilledrectangle(
+                        $target_image, 
+                        mapCoord($px+2), 
+                        mapCoord($py+2), 
+                        mapCoord($px+5)-1, 
+                        mapCoord($py+5)-1, 
+                        $colTracker
+                    );
                     
                 break;  
         }
     }
             
-    ImagePng($target_image, $tempDir.$fileName);
-    ImageDestroy($target_image);
+    imagepng($target_image, $tempDir.$fileName);
+    imagedestroy($target_image);
     
     // displaying
     

@@ -1,7 +1,7 @@
 <?php
 
     include('../lib/full/qrlib.php');
-	include('config.php');
+    include('config.php');
 
     // custom colorfull debug renderer
 
@@ -21,7 +21,7 @@
     $imgW = $w + 2*$outerFrame;
     $imgH = $h + 2*$outerFrame;
     
-    $base_image =ImageCreate($imgW, $imgH);
+    $base_image = imagecreate($imgW, $imgH);
     
     $colorSpec = array(
         "\x02" => array(240,240,240), // 0     
@@ -55,45 +55,73 @@
         "\x89" => "version 1   "
     );
     
-    $colBg = ImageColorAllocate($base_image,255,255,255); // BG, white 
+    $colBg = imagecolorallocate($base_image,255,255,255); // BG, white 
     
     foreach($colorSpec as $colorKey=>$colorDef) {
-        $colorBase[$colorKey] = ImageColorAllocate($base_image, $colorDef[0], $colorDef[1], $colorDef[2]);
+        $colorBase[$colorKey] = imagecolorallocate(
+            $base_image, 
+            $colorDef[0], 
+            $colorDef[1], 
+            $colorDef[2]
+        );
     }
                                 
     imagefill($base_image, 0, 0, $colBg);
 
     for($y=0; $y<$h; $y++) {
         for($x=0; $x<$w; $x++) {
-            ImageSetPixel($base_image,$x+$outerFrame,$y+$outerFrame,$colorBase[$frame[$y][$x]]); 
+            imagesetpixel(
+                $base_image,
+                $x+$outerFrame,
+                $y+$outerFrame,
+                $colorBase[$frame[$y][$x]]
+            ); 
         }
     }
     
-    // saving to file
-    $target_image = ImageCreate($imgW * $pixelPerPoint + 150, max($imgH * $pixelPerPoint, 250));
+    // creating zoomed version
+    $target_image = imagecreate(
+        $imgW * $pixelPerPoint + 150, 
+        max($imgH * $pixelPerPoint, 250)
+    );
     
-    $coltBg = ImageColorAllocate($target_image, 255, 255, 255);   // BG, white 
-    $coltTxt  = ImageColorAllocate($target_image, 0, 0, 0);       // TXT, black 
+    $coltBg   = imagecolorallocate($target_image, 255, 255, 255); // BG, white 
+    $coltTxt  = imagecolorallocate($target_image, 0, 0, 0);       // TXT, black 
     
     foreach($colorSpec as $colorKey=>$colorDef) {
-        $colorTarget[$colorKey] = ImageColorAllocate($target_image, $colorDef[0], $colorDef[1], $colorDef[2]);
+        $colorTarget[$colorKey] = imagecolorallocate(
+            $target_image, 
+            $colorDef[0], 
+            $colorDef[1], 
+            $colorDef[2]
+        );
     } 
     
-    ImageCopyResized($target_image, $base_image, 0, 0, 0, 0, $imgW * $pixelPerPoint, $imgH * $pixelPerPoint, $imgW, $imgH);
-    ImageDestroy($base_image);
+    imagecopyresized(
+        $target_image, 
+        $base_image, 
+        0, 0, 0, 0, 
+        $imgW * $pixelPerPoint, $imgH * $pixelPerPoint, $imgW, $imgH
+    );
+    imagedestroy($base_image);
     
     $pos = 0;
     foreach($colorLegend as $colKey=>$colName) {
         $px = $imgW * $pixelPerPoint + 25;
         $py = $outerFrame * $pixelPerPoint + $pos * 16;
-        imagefilledrectangle($target_image, $px-20, $py+3, $px-10, $py+13, $colorTarget[$colKey] );
+        imagefilledrectangle(
+            $target_image, 
+            $px-20, $py+3, 
+            $px-10, $py+13, 
+            $colorTarget[$colKey]
+        );
         imagerectangle($target_image, $px-20, $py+3, $px-10, $py+13, $coltTxt);
         imagestring($target_image, 2, $px, $py+1, $colName, $coltTxt);
         $pos++;
     }
     
-    ImagePng($target_image, $tempDir.$fileName);
-    ImageDestroy($target_image);
+    imagepng($target_image, $tempDir.$fileName);
+    imagedestroy($target_image);
 
     // displaying
     echo '<img src="'.EXAMPLE_TMP_URLRELPATH.$fileName.'" />';
