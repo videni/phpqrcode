@@ -43,6 +43,15 @@
         "008"=>"Configuring frame size",
         "010"=>"Using merged lib version",
         //------------------------------------
+        "020"=>"Content - Phone Number",
+        "021"=>"Content - SMS App",
+        "022"=>"Content - Email simple",
+        "023"=>"Content - Email extended",
+        "024"=>"Content - Skype call",
+        "025"=>"Content - Business Card, simple",
+        "026"=>"Content - Business Card, detailed",
+        "027"=>"Content - Business Card, photo",
+        //------------------------------------
         "100"=>"--- ToDo ---",
         //------------------------------------
         "201"=>"SVG basic output",
